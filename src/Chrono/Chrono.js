@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import "./Chrono.css";
 import PauseImg from "../Images/pause.svg";
 import PlayImg from "../Images/play.svg";
@@ -12,6 +12,43 @@ export default function Chrono() {
   const [breakTimeFixed, setBreakTimeFixed] = useState(300);
 
   const [workingChrono, setWorkingChrono] = useState(false);
+  const [state, dispatch] = useReducer(reducer);
+
+  function reducer(state, action) {
+    switch(action.type){
+        case 'TICK':
+            if(sessionTime >= 0) {
+                setSessionTime(sessionTime - 1);
+            } else if (breakTime >= 0) {
+                setBreakTime(breakTime - 1);
+            } else if (sessionTime <= 0 && breakTime <= 0) {
+                setSessionTime(sessionTimeFixed);
+                setBreakTime(breakTimeFixed);
+            }
+    }
+  }
+
+  useEffect(() => {
+
+      let id;
+
+      if (workingChrono) {
+          id = window.setInterval(() => {
+            dispatch({type: 'TICK'});
+          }, 1000)
+      }
+
+      return () => {
+          window.clearInterval(id);
+      };
+
+  }, [workingChrono])
+
+  const playPause = () => {
+      setWorkingChrono(!workingChrono);
+  }
+
+//   console.log(workingChrono);
 
   return (
     <div className="container-chrono">
@@ -37,7 +74,9 @@ export default function Chrono() {
       </h1>
 
       <div className="container-controllers">
-          <button>
+          <button
+            onClick={playPause}
+          >
               <img src={workingChrono ? PauseImg: PlayImg} alt="play" />
           </button>
           <button>
